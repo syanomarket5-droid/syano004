@@ -1,0 +1,38 @@
+- [Design system tokens](design-system.md) — All responsive design tokens live in index.css (not tailwind.config.js), using CSS custom props and @layer utilities.
+- [Product card uniform heights](product-card-heights.md) — Use pc-category/pc-title/pc-seller CSS utility classes for consistent card heights across Arabic/English.
+- [DB schema push without TTY](db-schema-push.md) — drizzle-kit push/push-force both require TTY; use executeSql for additive schema changes (ADD COLUMN IF NOT EXISTS, CREATE INDEX IF NOT EXISTS).
+- [Vite manualChunks circular dep crash](vite-manual-chunks-circular.md) — vendor-react ↔ vendor-radix circular import caused `Cannot read properties of undefined (reading 'useLayoutEffect')` in production.
+- [No position:fixed on mobile action bars](no-fixed-mobile-bars.md) — position:fixed sticky bars don't render correctly on mobile in this app; use inline flow elements instead.
+- [Cart API rating fields](cart-api-rating.md) — Products table has no averageRating column; cart route must query reviewsTable with avg()+count() to expose rating in cart items.
+- [i18n locale file path](i18n-locale-path.md) — Translation files live at artifacts/marketplace/src/i18n/{en,ar}.json (NOT src/locales/).
+- [i18n inline pattern rules](i18n-inline-rules.md) — Module-level constants with display labels must move inside the component or use labelKey+t() at render; lang==="ar" ternaries in JSX are always a bug to fix.
+- [Variant system architecture](variant-system.md) — Full Amazon/Shopify-grade product variants implemented; see topic file for schema, API contract, and UI patterns.
+- [Performance architecture](performance-architecture.md) — What's already optimized vs what was changed in the performance pass; avoids re-auditing known-good areas.
+- [React context memoization rules](context-memo-rules.md) — GuestCartContext, NotificationProvider context values must be useMemo'd; GuestCartContext uses named useMemo import (no React namespace); scroll-behavior:smooth removed from html root.
+- [Mobile instant experience](mobile-instant-experience.md) — IntersectionObserver prefetch in ProductCard (replaces hover-only), tap-highlight CSS, skeleton screens on all pages, product-grid contain:layout class.
+- [Mobile audit RTL fixes](mobile-audit-rtl-fixes.md) — Responsive heading pattern, RTL-safe class replacements, checkout button flex-1 fix, missing Link import pattern, DialogTitle accessibility rule.
+- [Seller ecosystem architecture](seller-ecosystem.md) — Store pages, follow system, seller reviews, messaging, analytics: schema, API patterns, and frontend integration decisions.
+- [Full platform audit fixes](platform-audit-2026.md) — All bugs/security/N+1/mobile issues found and fixed in the June 2026 comprehensive audit; see topic for full details.
+- [Mobile preference row truncation](mobile-pref-truncation.md) — flex-1 min-w-0 truncate on preference labels clips Arabic text; fix is remove truncate+min-w-0, let text wrap.
+- [Verification system](verification-system.md) — OTP system intact in DB+routes but DISABLED via VERIFICATION_ENABLED flag in auth.ts; register returns token directly; login skips 403 gate; verify.tsx redirects to /.
+- [Navbar sticky architecture](navbar-sticky.md) — Correct header is sticky top-0 z-40 bg-background; Layout uses min-h-screen flex-col + grow on main; no backdrop-blur; no position:static bandaid.
+- [Radix Sheet/Dialog a11y rules](radix-a11y.md) — SheetContent and DialogContent both require SheetTitle/DialogTitle (sr-only ok) + aria-describedby={undefined} if no Description; SheetContent is built on Dialog so both warnings apply.
+- [i18n audit June 2026](i18n-audit-2026.md) — Full i18n audit results; also mobile i18n uses custom t() at src/i18n/index.ts, imported as `../../src/i18n` (2 levels up from any app/ screen).
+- [i18n language switch race](i18n-race-fix.md) — FIXED: languageChanged handler must never do async import; both bundles must be pre-loaded via Promise.all before i18n.init().
+- [Drizzle raw SQL array pattern](drizzle-raw-sql-arrays.md) — sql.array() does not exist; use sql.join(ids.map(id=>sql`${id}`), sql`, `) and IN() not ANY() for raw SQL array params.
+- [Suspension system + best deals](suspension-best-deals.md) — requireActiveAccount middleware pattern, SSE kick flow, isBestDeal in all mappers, ambiguous subquery column fix.
+- [Guest cart architecture](guest-cart.md) — ALL entry points (ProductCard + ProductDetail + Navbar) must wire to addGuestItem; detail page must NOT show login redirect.
+- [Product list imageUrls omission](product-list-imageUrls.md) — GET /products list and best-sellers must SELECT imageUrls column explicitly or response returns [].
+- [hasVariants on product list](has-variants-list.md) — products list endpoint adds hasVariants via one batch inArray query on productVariantsTable; ProductCard reads (product as any).hasVariants to decide navigate-to-detail vs quick-add.
+- [SSE real-time query invalidation](sse-realtime-invalidation.md) — NotificationProvider onmessage checks type field: new_message → invalidate conversations + /api/conversations/* prefix; order events → invalidate getListOrdersQueryKey.
+- [Messages polling pattern](messages-polling.md) — useGetMessages gets refetchInterval:3000, useGetConversations gets refetchInterval:5000; SSE handles instantaneous updates, polling is fallback.
+- [Order transaction pattern](order-transaction-pattern.md) — POST /orders uses db.transaction()+SELECT FOR UPDATE; tx.execute() returns {rows:any[]}; columns are snake_case in raw SQL.
+- [requireActiveAccount coverage](requireActiveAccount-coverage.md) — Full list of all routes that must have requireActiveAccount; see topic file for complete inventory.
+- [Mobile audit fixes](mobile-audit-fixes.md) — Cart auth gap (requireActiveAccount), mobile i18n missing in login/layout/OrderCard, locale-locked date, key={idx} bug.
+- [HMR context provider fix](hmr-context-fix.md) — Add `// @refresh reset` at top of CurrencyContext, GuestCartContext, NotificationProvider to prevent "must be used within Provider" errors during hot reload.
+- [Auth error code mapping](auth-error-mapping.md) — Login maps 429→rate_limited, 403+ACCOUNT_SUSPENDED→suspended toast+redirect, Invalid credentials/User not found→no_account_found; Register maps Email already registered→email_taken, Phone number already registered→phone_taken.
+- [Google Translate price compat](google-translate-prices.md) — Add translate="no" to all price/currency <span> elements; Google Translate wraps text nodes in <font> and corrupts React reconciliation on numeric/currency values.
+- [pagination i18n RTL](pagination-i18n.md) — PaginationPrevious/PaginationNext now use useTranslation() + i18n.dir() for RTL-aware chevron flip; keys: pagination.previous/next/go_prev/go_next in en.json+ar.json.
+- [Express v5 + TS params pattern](express-v5-params.md) — req.params values are `string | string[]` in Express v5 types; always wrap with String() before parseInt; JWT_SECRET must be narrowed via IIFE const, not bare conditional.
+- [Generated API client type sync](api-client-type-sync.md) — orval-generated api.schemas.ts must be manually extended when new API fields are added (isBestDeal, storeName, hasVariants, flashSale*, etc.); BestSellerProduct interface in best-sellers.ts must mirror Product fields used in ProductCard.
+- [product_variants DB migration](product-variants-migration.md) — price, compare_at_price, barcode, weight_grams, dimensions columns were not in the backup DB; added to run-migrations.ts IF NOT EXISTS block for product_variants table.

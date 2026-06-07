@@ -1,0 +1,53 @@
+modules = ["nodejs-24", "python-3.11", "postgresql-16"]
+
+[deployment]
+router = "application"
+deploymentTarget = "autoscale"
+
+[deployment.postBuild]
+args = ["pnpm", "store", "prune"]
+env = { "CI" = "true" }
+
+[workflows]
+runButton = "Project"
+
+[agent]
+stack = "PNPM_WORKSPACE"
+expertMode = true
+
+[postMerge]
+path = "scripts/post-merge.sh"
+timeoutMs = 20000
+
+[nix]
+channel = "stable-25_05"
+
+[[ports]]
+localPort = 8000
+externalPort = 8000
+
+[[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
+localPort = 18115
+externalPort = 80
+
+[[ports]]
+localPort = 20787
+externalPort = 3000
+
+[userenv]
+
+[userenv.shared]
+VAPID_PUBLIC_KEY = "BFoem7SaEkB2P1zJ0O2jUvpWrJ08Hdb49m4OVBqNdlTmBKwxupHzbg4L3x9zBUkxQrvPIyQz4I6tpK69oj90vAI"
+VAPID_PRIVATE_KEY = "rPDzpLIryaLXE9Nf3WuXxW3p3HjvD5X-CmtfD17e3Ns"
+VAPID_EMAIL = "mailto:admin@syano.online"
+CORS_ORIGIN = "https://syano.online"
+SITE_URL = "https://syano.online"
+VITE_SUPPORT_PHONE = "+963-PLACEHOLDER"

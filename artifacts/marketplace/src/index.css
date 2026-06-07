@@ -1,0 +1,712 @@
+@import "tailwindcss";
+
+/*
+ * Self-hosted Inter variable font — Latin subset only (48 KB gzipped ~20 KB).
+ * All weights 100–900 are served from a single WOFF2 file (variable font).
+ * Preloaded in index.html to eliminate render-blocking and the Google Fonts
+ * third-party round-trip. font-display:swap avoids FOIT on slow connections.
+ */
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('/fonts/inter-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-card-border: hsl(var(--card-border));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-popover-border: hsl(var(--popover-border));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-primary-border: var(--primary-border);
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-secondary-border: var(--secondary-border);
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-muted-border: var(--muted-border);
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-accent-border: var(--accent-border);
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-destructive-border: var(--destructive-border);
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --color-sidebar: hsl(var(--sidebar));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-primary-border: var(--sidebar-primary-border);
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-accent-border: var(--sidebar-accent-border);
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --font-sans: var(--app-font-sans);
+  --font-serif: var(--app-font-serif);
+  --font-mono: var(--app-font-mono);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+:root {
+  --button-outline: rgba(0,0,0, .10);
+  --badge-outline: rgba(0,0,0, .05);
+  --opaque-button-border-intensity: -8;
+  --elevate-1: rgba(0,0,0, .03);
+  --elevate-2: rgba(0,0,0, .08);
+
+  /* Light mode:
+  Background: #F9FAFB → HSL: 210 20% 98%
+  Surfaces/Cards: #FFFFFF → HSL: 0 0% 100%
+  Primary green: #059669 → HSL: 161 94% 30%
+  Hover green: #047857 → HSL: 161 94% 24%
+  Text primary: #111827 → HSL: 221 39% 11%
+  Text secondary: #4B5563 → HSL: 220 9% 35%
+  Borders: #E5E7EB → HSL: 220 13% 91%
+  */
+
+  --background: 210 20% 98%;
+  --foreground: 221 39% 11%;
+  
+  --card: 0 0% 100%;
+  --card-foreground: 221 39% 11%;
+  --card-border: 220 13% 91%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 221 39% 11%;
+  --popover-border: 220 13% 91%;
+
+  --primary: 161 94% 30%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 220 13% 91%;
+  --secondary-foreground: 221 39% 11%;
+
+  --muted: 220 13% 91%;
+  --muted-foreground: 220 9% 35%;
+
+  --accent: 220 13% 91%;
+  --accent-foreground: 221 39% 11%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+
+  --border: 220 13% 91%;
+  --input: 220 13% 91%;
+  --ring: 161 94% 30%;
+
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 221 39% 11%;
+  --sidebar-border: 220 13% 91%;
+  --sidebar-primary: 161 94% 30%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-accent: 220 13% 91%;
+  --sidebar-accent-foreground: 221 39% 11%;
+  --sidebar-ring: 161 94% 30%;
+
+  --chart-1: 161 94% 30%;
+  --chart-2: 221 39% 11%;
+  --chart-3: 220 9% 35%;
+  --chart-4: 220 13% 91%;
+  --chart-5: 0 0% 0%;
+
+  --app-font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --app-font-serif: Georgia, serif;
+  --app-font-mono: Menlo, monospace;
+  --radius: .5rem;
+}
+
+.dark {
+  --button-outline: rgba(255,255,255, .10);
+  --badge-outline: rgba(255,255,255, .05);
+  --opaque-button-border-intensity: 9;
+  --elevate-1: rgba(255,255,255, .04);
+  --elevate-2: rgba(255,255,255, .09);
+
+  /* Dark mode — TRUE AMOLED:
+  Main Background: #000000 → HSL: 0 0% 0%
+  Elevated surfaces/Cards: #0A0A0A → HSL: 0 0% 4%
+  Borders: #1A1A1A → HSL: 0 0% 10%
+  Primary Green: #10B981 → HSL: 160 84% 39%
+  Hover Green: #059669 → HSL: 161 94% 30%
+  Text: #F8FAFC → HSL: 210 40% 98%
+  Secondary text: #CBD5E1 → HSL: 215 25% 84%
+  */
+
+  --background: 0 0% 0%;
+  --foreground: 210 40% 98%;
+
+  --card: 0 0% 4%;
+  --card-foreground: 210 40% 98%;
+  --card-border: 0 0% 10%;
+
+  --popover: 0 0% 4%;
+  --popover-foreground: 210 40% 98%;
+  --popover-border: 0 0% 10%;
+
+  --primary: 160 84% 39%;
+  --primary-foreground: 0 0% 0%;
+
+  --secondary: 0 0% 10%;
+  --secondary-foreground: 210 40% 98%;
+
+  --muted: 0 0% 10%;
+  --muted-foreground: 215 25% 84%;
+
+  --accent: 0 0% 10%;
+  --accent-foreground: 210 40% 98%;
+
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+
+  --border: 0 0% 10%;
+  --input: 0 0% 10%;
+  --ring: 160 84% 39%;
+
+  --sidebar: 0 0% 4%;
+  --sidebar-foreground: 210 40% 98%;
+  --sidebar-border: 0 0% 10%;
+  --sidebar-primary: 160 84% 39%;
+  --sidebar-primary-foreground: 0 0% 0%;
+  --sidebar-accent: 0 0% 10%;
+  --sidebar-accent-foreground: 210 40% 98%;
+  --sidebar-ring: 160 84% 39%;
+
+  --chart-1: 160 84% 39%;
+  --chart-2: 210 40% 98%;
+  --chart-3: 215 25% 84%;
+  --chart-4: 0 0% 10%;
+  --chart-5: 0 0% 100%;
+}
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 1rem;
+  width: 100%;
+  max-width: 80rem;
+
+  @media (min-width: 640px) {
+    padding-inline: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+@layer base {
+  html {
+    /* scroll-behavior:smooth removed from root — causes jarring slow-scroll during
+       programmatic navigation (ScrollToTop fires on every route change). Apply it
+       on specific containers where smooth-scroll is intentional UX instead. */
+    scrollbar-gutter: stable;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  * {
+    @apply border-border;
+    /* Eliminate the 300ms tap delay on iOS without breaking native scrolling */
+    touch-action: manipulation;
+    /* Remove the blue/grey tap highlight rectangle on Android/iOS.
+       Active-state feedback is handled via scale/opacity transitions instead. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent accidental text selection on tap-hold for interactive elements */
+  button, [role="button"], [role="link"], a {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Restore natural scroll gestures on scrollable containers */
+  /* Vertical-only scrollers */
+  [data-scroll-container],
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-y-scroll {
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Horizontal-only scrollers — pan-y blocks swipe, must use pan-x */
+  .overflow-x-auto,
+  .overflow-x-scroll {
+    touch-action: pan-x;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+
+  /* Bidirectional scrollers */
+  .overflow-scroll {
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+    line-height: 1.6;
+    /* Prevent scroll chaining / rubber-band jank on overscroll */
+    overscroll-behavior-y: contain;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+}
+
+/* ─── Accessibility: respect reduced-motion preference ───────────────────────
+   Users who set "Reduce Motion" in their OS/browser get no animations at all.
+   This improves accessibility without removing transitions for everyone else.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .page-transition {
+    animation: none !important;
+  }
+}
+
+/* ─── Page transition ────────────────────────────────────────────────────────
+   Uses only GPU-composited properties (opacity + transform) so it runs
+   entirely off the main thread. Duration is tuned to 120 ms — about 1.5 frames
+   at 120 Hz — just enough to feel smooth without introducing perceptible lag.
+   ─────────────────────────────────────────────────────────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.page-transition {
+  /* Opacity-only fade — no transform so no stacking-context side-effects.
+     will-change: opacity tells the browser to promote this element to its
+     own compositor layer immediately so the fade is fully GPU-composited. */
+  animation: page-enter 0.15s ease-out both;
+  will-change: opacity;
+}
+
+/* ─── Mobile touch active feedback ──────────────────────────────────────────
+   On touchscreens (hover:none + pointer:coarse) we apply an instant opacity
+   flash on tap so the UI feels reactive. Scale is intentionally left out here
+   to avoid compositor thrash on elements with stacking contexts — ProductCard
+   already has active:scale-[0.98] via Tailwind for cards specifically.
+   The transition is intentionally short (60ms) so it feels snappy, not slow. */
+@media (hover: none) and (pointer: coarse) {
+  button:not(:disabled):active,
+  [role="button"]:active {
+    opacity: 0.72;
+    transition: opacity 60ms ease;
+  }
+}
+
+/* ─── Product grid layout containment ────────────────────────────────────────
+   `contain: layout style` tells the browser the grid's layout and CSS cascade
+   are self-contained so it can skip layout recalculations AND style resolution
+   outside this element when children change (e.g. skeleton → real product
+   cards). Adding `style` on top of `layout` gives an extra tier of isolation:
+   CSS custom-property changes inside the grid don't invalidate styles outside
+   it, reducing repaint scope during scroll. We intentionally leave `paint` out
+   because product cards use absolutely-positioned badges that must bleed past
+   the grid's bounds without being clipped. */
+.product-grid {
+  contain: layout style;
+}
+
+/* ─── Content-visibility for below-fold page sections ───────────────────────
+   `content-visibility: auto` lets the browser skip rendering work for sections
+   that are fully out of the viewport. The `contain-intrinsic-block-size` hint
+   tells the browser a plausible height so the scrollbar remains accurate before
+   the section is rendered. Applied only to full-width sections that are
+   guaranteed below the fold (hero is excluded). This gives the biggest scroll
+   performance gain on the home page where 5 sections stack up to ~3000px. */
+.cv-section {
+  content-visibility: auto;
+  contain-intrinsic-block-size: 600px;
+}
+
+/* ─── Product card GPU promotion ─────────────────────────────────────────────
+   Hint the browser on hover that this element will change transform so it can
+   promote the card to its own compositor layer before the animation fires —
+   eliminating paint jank on the translateY hover. Only active during hover to
+   avoid wasting GPU memory when cards are at rest. */
+.group:hover {
+  will-change: transform;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   SYANO RESPONSIVE DESIGN SYSTEM v1.0
+   ───────────────────────────────────────────────────────────────────
+   Centralized tokens covering:
+     § Typography scale  (--ds-text-*)
+     § Icon scale        (--ds-icon-*)
+     § Spacing scale     (--ds-space-*)
+     § Border radii      (--ds-radius-*)
+     § Touch targets     (--ds-touch)
+   Plus CSS utility classes for safe-area insets, fluid headings,
+   and minimum-touch-target enforcement.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Typography Scale ──────────────────────────────────────────── */
+  --ds-text-xs:    0.75rem;    /* 12px — minimum label / caption     */
+  --ds-text-sm:    0.875rem;   /* 14px — secondary body              */
+  --ds-text-base:  1rem;       /* 16px — primary body                */
+  --ds-text-lg:    1.125rem;   /* 18px — large body / card title     */
+  --ds-text-xl:    1.25rem;    /* 20px — subheading                  */
+  --ds-text-2xl:   1.5rem;     /* 24px — section heading (mobile)    */
+  --ds-text-3xl:   1.875rem;   /* 30px — page heading (mobile)       */
+
+  /* ── Icon Scale ────────────────────────────────────────────────── */
+  --ds-icon-xs:   0.875rem;    /* 14px — badge / chip                */
+  --ds-icon-sm:   1rem;        /* 16px — inline / supporting         */
+  --ds-icon-md:   1.125rem;    /* 18px — nav / action                */
+  --ds-icon-lg:   1.25rem;     /* 20px — primary CTA icons           */
+  --ds-icon-xl:   1.5rem;      /* 24px — hero / feature icons        */
+
+  /* ── Spacing Scale ─────────────────────────────────────────────── */
+  --ds-space-1:   0.25rem;     /*  4px */
+  --ds-space-2:   0.5rem;      /*  8px */
+  --ds-space-3:   0.75rem;     /* 12px */
+  --ds-space-4:   1rem;        /* 16px */
+  --ds-space-5:   1.25rem;     /* 20px */
+  --ds-space-6:   1.5rem;      /* 24px */
+  --ds-space-8:   2rem;        /* 32px */
+  --ds-space-10:  2.5rem;      /* 40px */
+  --ds-space-12:  3rem;        /* 48px */
+
+  /* ── Border Radius Scale ───────────────────────────────────────── */
+  --ds-radius-sm: 0.375rem;    /*  6px — chips, badges              */
+  --ds-radius-md: 0.75rem;     /* 12px — inputs, small cards        */
+  --ds-radius-lg: 1rem;        /* 16px — cards                      */
+  --ds-radius-xl: 1.5rem;      /* 24px — modals, large cards        */
+
+  /* ── Touch Target (WCAG 2.5.5) ─────────────────────────────────── */
+  --ds-touch:     2.75rem;     /* 44px — minimum interactive target  */
+}
+
+/* ─── Safe-area Inset Utilities ─────────────────────────────────────
+   Avoid iPhone notch, Dynamic Island, Android punch-hole camera, and
+   the home-indicator bar by using these on sticky / fixed / bottom
+   elements. Falls back to 0px on devices without insets.
+   ──────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .pt-safe  { padding-top:    env(safe-area-inset-top,    0px); }
+  .pb-safe  { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .ps-safe  { padding-left:   env(safe-area-inset-left,   0px); }
+  .pe-safe  { padding-right:  env(safe-area-inset-right,  0px); }
+  .mt-safe  { margin-top:     env(safe-area-inset-top,    0px); }
+  .mb-safe  { margin-bottom:  env(safe-area-inset-bottom, 0px); }
+
+  /* Dynamic top — adds safe-area on top of an existing padding */
+  .pb-safe-4 {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px));
+  }
+  .pb-safe-5 {
+    padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+  }
+  .pb-safe-6 {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ─── Touch-Target Enforcement ───────────────────────────────────────
+   Apply `.touch-min` to interactive elements whose visual size is
+   below 44px. A transparent pseudo-element expands the hit area
+   without changing layout or visuals.
+   ──────────────────────────────────────────────────────────────── */
+.touch-min {
+  position: relative;
+}
+.touch-min::after {
+  content: "";
+  position: absolute;
+  inset: 50% 50%;
+  transform: translate(-50%, -50%);
+  min-width:  var(--ds-touch);
+  min-height: var(--ds-touch);
+}
+
+/* ─── Fluid Heading Utilities ────────────────────────────────────────
+   Responsive font sizes using clamp() so headings scale gracefully
+   from iPhone SE (320px) through ultrawide (2560px) without needing
+   Tailwind breakpoint overrides on every heading element.
+   ──────────────────────────────────────────────────────────────── */
+
+/* Hero headline — e.g. "Syria's First Comprehensive Online Marketplace"
+   320px → 26px  |  390px → 28px  |  768px → 36px  |  1280px → 50px  */
+.heading-hero {
+  font-size:      clamp(1.625rem, 1.25rem + 2.5vw, 3.25rem);
+  font-weight:    800;
+  line-height:    1.15;
+  letter-spacing: -0.03em;
+}
+
+/* Section heading — e.g. "Hot Deals", "Featured Products"
+   320px → 18px  |  390px → 20px  |  768px → 24px  |  1280px → 30px  */
+.heading-section {
+  font-size:      clamp(1.125rem, 1rem + 1.5vw, 1.875rem);
+  font-weight:    700;
+  line-height:    1.25;
+  letter-spacing: -0.02em;
+}
+
+/* Card heading — product names, category tiles
+   320px → 14px  |  390px → 15px  |  768px → 16px  |  1280px → 18px  */
+.heading-card {
+  font-size:      clamp(0.875rem, 0.8rem + 0.5vw, 1.125rem);
+  font-weight:    600;
+  line-height:    1.35;
+}
+
+/* ─── Responsive Grid Helpers ────────────────────────────────────────
+   Consistent product grids that adapt across all screen widths.
+   ──────────────────────────────────────────────────────────────── */
+
+/* 2 → 3 → 4 column product grid */
+.product-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, 1fr);
+}
+@media (min-width: 480px)  { .product-grid { gap: 1rem; } }
+@media (min-width: 768px)  { .product-grid { grid-template-columns: repeat(3, 1fr); gap: 1.25rem; } }
+@media (min-width: 1024px) { .product-grid { grid-template-columns: repeat(4, 1fr); gap: 1.5rem; } }
+@media (min-width: 1280px) { .product-grid { gap: 1.5rem; } }
+
+/* ─── Scroll Container Helpers ───────────────────────────────────── */
+.scroll-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-hidden::-webkit-scrollbar { display: none; }
+
+/* ─── RTL / Arabic Typography Adjustments ───────────────────────────
+   Arabic script has a higher optical x-height than Latin, uses
+   different ascender/descender metrics, and does not benefit from
+   negative letter-spacing (it actually harms readability). These
+   overrides correct the visual balance when dir="rtl" is active.
+   ──────────────────────────────────────────────────────────────── */
+[dir="rtl"] .heading-hero {
+  font-size:      clamp(1.75rem, 1.375rem + 2.5vw, 3.5rem);
+  letter-spacing: 0;
+  line-height:    1.3;
+}
+[dir="rtl"] .heading-section {
+  font-size:      clamp(1.2rem, 1.1rem + 1.5vw, 2rem);
+  letter-spacing: 0;
+  line-height:    1.4;
+}
+[dir="rtl"] .heading-card {
+  font-size:      clamp(0.9375rem, 0.85rem + 0.5vw, 1.2rem);
+  letter-spacing: 0;
+  line-height:    1.6;
+}
+
+/* ─── Semantic Typography Utilities ─────────────────────────────────
+   Fluid, overflow-safe classes for stats, prices, and titles.
+   All use clamp() — scale gracefully 320px → 2560px.
+   tabular-nums prevents layout jank when digits change.
+   word-break + overflow-wrap guard long currency strings like
+   "1,250,000 ل.س" on narrow screens.
+   RTL overrides reset letter-spacing to 0 (Arabic doesn't kern).
+   ──────────────────────────────────────────────────────────────── */
+
+/* Seller / Admin KPI card number
+   320px→20px  390px→22px  768px→26px  1280px→30px */
+.text-stat-number {
+  font-size:      clamp(1.25rem, 1rem + 1.4vw, 1.875rem);
+  font-weight:    800;
+  line-height:    1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  word-break:     break-word;
+  overflow-wrap:  break-word;
+}
+[dir="rtl"] .text-stat-number {
+  letter-spacing: 0;
+  line-height:    1.3;
+}
+
+/* Featured / hero KPI (larger emphasis)
+   320px→22px  390px→25px  768px→30px  1280px→36px */
+.text-dashboard-kpi {
+  font-size:      clamp(1.375rem, 1.1rem + 1.8vw, 2.25rem);
+  font-weight:    900;
+  line-height:    1.05;
+  letter-spacing: -0.025em;
+  font-variant-numeric: tabular-nums;
+  word-break:     break-word;
+  overflow-wrap:  break-word;
+}
+[dir="rtl"] .text-dashboard-kpi {
+  letter-spacing: 0;
+  line-height:    1.25;
+}
+
+/* Product detail page price
+   320px→22px  390px→25px  768px→30px  1280px→36px */
+.text-product-price {
+  font-size:      clamp(1.375rem, 1.1rem + 1.8vw, 2.25rem);
+  font-weight:    900;
+  line-height:    1.1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  word-break:     break-word;
+  overflow-wrap:  break-word;
+}
+[dir="rtl"] .text-product-price {
+  letter-spacing: 0;
+  line-height:    1.3;
+}
+
+/* Compact dashboard card value
+   320px→18px  390px→20px  768px→22px  1280px→24px */
+.text-card-metric {
+  font-size:      clamp(1.125rem, 0.95rem + 1vw, 1.5rem);
+  font-weight:    700;
+  line-height:    1.1;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  word-break:     break-word;
+  overflow-wrap:  break-word;
+}
+[dir="rtl"] .text-card-metric {
+  letter-spacing: 0;
+  line-height:    1.3;
+}
+
+/* Review aggregate score (e.g. "4.8")
+   320px→30px  390px→34px  768px→40px  1280px→48px */
+.text-review-score {
+  font-size:      clamp(1.875rem, 1.5rem + 2.5vw, 3rem);
+  font-weight:    900;
+  line-height:    1.0;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+[dir="rtl"] .text-review-score {
+  letter-spacing: 0;
+  line-height:    1.15;
+}
+
+/* Store page follower / review / product counts
+   320px→20px  390px→22px  768px→26px  1280px→30px */
+.text-store-stat {
+  font-size:      clamp(1.25rem, 1rem + 1.4vw, 1.875rem);
+  font-weight:    900;
+  line-height:    1.0;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+[dir="rtl"] .text-store-stat {
+  letter-spacing: 0;
+  line-height:    1.2;
+}
+
+/* Responsive page / section h1
+   320px→20px  390px→22px  768px→26px  1280px→30px */
+.text-page-title {
+  font-size:      clamp(1.25rem, 1rem + 1.4vw, 1.875rem);
+  font-weight:    700;
+  line-height:    1.2;
+  letter-spacing: -0.02em;
+}
+[dir="rtl"] .text-page-title {
+  letter-spacing: 0;
+  line-height:    1.4;
+}
+
+/* ─── Product Card Section Utilities ─────────────────────────────────
+   These classes enforce consistent section heights inside product cards
+   so that cards with different title lengths — in either Arabic or
+   English — remain visually identical within the same grid row.
+   Works together with the flex-col + mb-auto layout in ProductCard.tsx.
+   ──────────────────────────────────────────────────────────────── */
+
+/* Category chip — always 1 line, fixed minimum height */
+.pc-category {
+  min-height:    1.25rem;
+  overflow:      hidden;
+  white-space:   nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Product title — always reserves exactly 2 lines of height.
+   Uses -webkit-line-clamp for the text cut; min-height ensures
+   1-line titles still occupy the same vertical space as 2-line ones. */
+.pc-title {
+  display:            -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow:           hidden;
+  min-height:         calc(1.35em * 2);   /* line-height 1.35 × 2 lines */
+}
+[dir="rtl"] .pc-title {
+  min-height: calc(1.6em * 2);            /* Arabic line-height 1.6 × 2 lines */
+}
+
+/* Seller name row — always 1 line, fixed height, truncates with ellipsis */
+.pc-meta {
+  min-height: 1.25rem;
+  overflow:   hidden;
+}
+@media (min-width: 640px) {
+  .pc-meta { min-height: 1.375rem; }
+}
+
+/* Rating row — always 1 line, fixed height.
+   StarRating icons are fixed-width (h-3.5 w-3.5) and never wrap.
+   min-height ensures no-review cards match rated-card height exactly. */
+.pc-rating {
+  min-height: 1.25rem;
+  overflow:   hidden;
+}
+@media (min-width: 640px) {
+  .pc-rating { min-height: 1.375rem; }
+}
