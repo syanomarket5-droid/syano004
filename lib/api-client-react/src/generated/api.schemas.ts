@@ -667,6 +667,7 @@ export const ListProductsSortBy = {
 export type AdminListUsersParams = {
 page?: number;
 limit?: number;
+q?: string;
 };
 
 export type AdminListProductsParams = {
