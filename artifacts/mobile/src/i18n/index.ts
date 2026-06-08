@@ -151,6 +151,8 @@ const en = {
     add_to_cart: "Add to Cart · ${{price}}",
     seller_label: "seller",
     reviews_count: "({{count}} reviews)",
+    choose_option: "Choose {{group}}",
+    select_options: "Select all options to add to cart",
   },
   shop: {
     title: "Shop",
@@ -358,6 +360,8 @@ const ar: DeepLeaf<typeof en> = {
     add_to_cart: "إضافة للسلة · ${{price}}",
     seller_label: "بائع",
     reviews_count: "({{count}} تقييم)",
+    choose_option: "اختر {{group}}",
+    select_options: "اختر جميع الخيارات للإضافة إلى السلة",
   },
   shop: {
     title: "المتجر",

@@ -6,7 +6,7 @@
 - [Cart API rating fields](cart-api-rating.md) — Products table has no averageRating column; cart route must query reviewsTable with avg()+count() to expose rating in cart items.
 - [i18n locale file path](i18n-locale-path.md) — Translation files live at artifacts/marketplace/src/i18n/{en,ar}.json (NOT src/locales/).
 - [i18n inline pattern rules](i18n-inline-rules.md) — Module-level constants with display labels must move inside the component or use labelKey+t() at render; lang==="ar" ternaries in JSX are always a bug to fix.
-- [Variant system architecture](variant-system.md) — Full Amazon/Shopify-grade product variants implemented; see topic file for schema, API contract, and UI patterns.
+- [Variant system architecture](variant-system.md) — Full Amazon/Shopify-grade product variants implemented; see topic file for schema, API contract, and UI patterns. Color swatches auto-detected from group name (color/اللون) + value (red/أحمر etc) in both marketplace and mobile. Mobile variant selector fully added. VariantBuilder has preset group chips + quick-add value suggestions.
 - [Performance architecture](performance-architecture.md) — What's already optimized vs what was changed in the performance pass; avoids re-auditing known-good areas.
 - [React context memoization rules](context-memo-rules.md) — GuestCartContext, NotificationProvider context values must be useMemo'd; GuestCartContext uses named useMemo import (no React namespace); scroll-behavior:smooth removed from html root.
 - [Mobile instant experience](mobile-instant-experience.md) — IntersectionObserver prefetch in ProductCard (replaces hover-only), tap-highlight CSS, skeleton screens on all pages, product-grid contain:layout class.

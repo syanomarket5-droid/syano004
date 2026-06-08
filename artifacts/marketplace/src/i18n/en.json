@@ -118,7 +118,8 @@
     "sort_highest": "Highest",
     "sort_lowest": "Lowest",
     "select_options": "Select Options",
-    "all_variants_unavailable": "All variants are out of stock"
+    "all_variants_unavailable": "All variants are out of stock",
+    "choose_option": "Choose one"
   },
   "variants": {
     "section_title": "Product Variants",
@@ -157,7 +158,9 @@
     "compare_inherit": "—",
     "price_inherit_note": "Leave Price blank to use the base product price. 'Was' is the crossed-out original price.",
     "save_failed": "Failed to save variants",
-    "stock_note": "Note: The stock field above is updated automatically from per-variant stock."
+    "stock_note": "Note: The stock field above is updated automatically from per-variant stock.",
+    "quick_add": "Quick add:",
+    "quick_preset": "Quick start:"
   },
   "cart": {
     "title": "Shopping Cart",
@@ -639,8 +642,7 @@
     "passwords_dont_match": "Passwords don't match",
     "password_min_8": "Password must be at least 8 characters",
     "back_to_login": "Back to login",
-    "code_6_digits": "Please enter the 6-digit code",
-    "try_again": "Please try again"
+    "code_6_digits": "Please enter the 6-digit code"
   },
   "time": {
     "just_now": "Just now",

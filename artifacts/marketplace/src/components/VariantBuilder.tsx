@@ -2,8 +2,18 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Zap, ImageIcon, X, ChevronDown, ChevronUp, Copy } from "lucide-react";
+import { Plus, Trash2, Zap, ImageIcon, X, ChevronDown, ChevronUp, Copy, Sparkles } from "lucide-react";
 import { useTranslation } from "react-i18next";
+
+// ── Preset groups with quick-add values ───────────────────────────────────────
+const PRESET_GROUPS: Array<{ name: string; nameAr: string; values: string[]; valuesAr: string[] }> = [
+  { name: "Color",   nameAr: "اللون",  values: ["Black", "White", "Red", "Blue", "Green", "Yellow", "Gray", "Pink"],        valuesAr: ["أسود", "أبيض", "أحمر", "أزرق", "أخضر", "أصفر", "رمادي", "وردي"] },
+  { name: "Size",    nameAr: "المقاس", values: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"],                                  valuesAr: ["XS", "S", "M", "L", "XL", "XXL", "XXXL"] },
+  { name: "Storage", nameAr: "السعة",  values: ["64GB", "128GB", "256GB", "512GB", "1TB"],                                   valuesAr: ["64GB", "128GB", "256GB", "512GB", "1TB"] },
+  { name: "RAM",     nameAr: "الذاكرة",values: ["4GB", "6GB", "8GB", "12GB", "16GB", "32GB"],                               valuesAr: ["4GB", "6GB", "8GB", "12GB", "16GB", "32GB"] },
+  { name: "Material",nameAr: "المادة", values: ["Cotton", "Polyester", "Leather", "Silk", "Wool", "Linen", "Denim"],         valuesAr: ["قطن", "بوليستر", "جلد", "حرير", "صوف", "كتان", "دنيم"] },
+  { name: "Style",   nameAr: "الأسلوب",values: ["Classic", "Modern", "Sport", "Casual", "Formal"],                          valuesAr: ["كلاسيكي", "عصري", "رياضي", "كاجوال", "رسمي"] },
+];
 
 export interface AttributeGroup {
   id: string;
@@ -195,6 +205,23 @@ export function VariantBuilder({ groups, onGroupsChange, variants, onVariantsCha
   const removeValue = (id: string, value: string) =>
     onGroupsChange(groups.map((g) => (g.id === id ? { ...g, values: g.values.filter((v) => v !== value) } : g)));
 
+  // Find preset matching a group's name (case-insensitive, checks both name and nameAr)
+  const findPreset = (groupName: string) => {
+    const lower = groupName.toLowerCase().trim();
+    return PRESET_GROUPS.find(
+      (p) => p.name.toLowerCase() === lower || p.nameAr === lower || p.nameAr === groupName.trim()
+    ) ?? null;
+  };
+
+  // Add a preset group with its name pre-filled (no values yet — let seller choose)
+  const addPresetGroup = (preset: typeof PRESET_GROUPS[0]) => {
+    const alreadyExists = groups.some(
+      (g) => g.name.toLowerCase() === preset.name.toLowerCase() || g.name === preset.nameAr
+    );
+    if (alreadyExists) return;
+    onGroupsChange([...groups, { id: `grp-${Date.now()}`, name: preset.name, values: [] }]);
+  };
+
   const generate = () => onVariantsChange(cartesianVariants(groups, defaultStock));
 
   const updateVariant = (variantId: string, field: keyof VariantRow, value: unknown) =>
@@ -280,9 +307,63 @@ export function VariantBuilder({ groups, onGroupsChange, variants, onVariantsCha
                 <span className="text-xs text-muted-foreground italic">{t("variants.no_values", "No values yet")}</span>
               )}
             </div>
+
+            {/* Preset value suggestions — appear when group name matches a known preset */}
+            {(() => {
+              const preset = findPreset(group.name);
+              if (!preset) return null;
+              const remaining = preset.values.filter(
+                (v) => !group.values.map((x) => x.toLowerCase()).includes(v.toLowerCase())
+              );
+              if (remaining.length === 0) return null;
+              return (
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="text-[10px] font-medium text-muted-foreground self-center shrink-0">
+                    {t("variants.quick_add", "Quick add:")}
+                  </span>
+                  {remaining.map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => addValue(group.id, val)}
+                      className="inline-flex items-center gap-0.5 text-[11px] font-medium px-2 py-0.5 rounded-full border border-dashed border-primary/40 text-primary hover:bg-primary/10 hover:border-primary transition-colors"
+                    >
+                      <Plus className="h-2.5 w-2.5" />
+                      {val}
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+
             <AddValueInput onAdd={(v) => addValue(group.id, v)} />
           </div>
         ))}
+
+        {/* Quick-add preset group chips — shown when no groups yet or fewer than 3 */}
+        {groups.length < 3 && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-muted-foreground shrink-0">
+              <Sparkles className="h-3 w-3" />
+              {t("variants.quick_preset", "Quick start:")}
+            </span>
+            {PRESET_GROUPS.filter(
+              (p) => !groups.some(
+                (g) => g.name.toLowerCase() === p.name.toLowerCase() || g.name === p.nameAr
+              )
+            ).map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => addPresetGroup(preset)}
+                className="inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1 rounded-full bg-primary/8 border border-primary/20 text-primary hover:bg-primary/15 hover:border-primary/40 transition-colors"
+              >
+                <Plus className="h-2.5 w-2.5 shrink-0" />
+                {preset.name}
+              </button>
+            ))}
+          </div>
+        )}
 
         <Button type="button" variant="outline" size="sm" onClick={addGroup} className="gap-2 text-sm">
           <Plus className="h-3.5 w-3.5" />

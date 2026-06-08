@@ -11,8 +11,38 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft, Minus, Plus, ShoppingCart, Truck, ShieldCheck, RefreshCw, // RefreshCw kept for future re-enable
-  ZoomIn, X, AlertTriangle, ChevronRight, Package, Star, MessageCircle
+  ZoomIn, X, AlertTriangle, ChevronRight, Package, Star, MessageCircle, Check
 } from "lucide-react";
+
+// ── Color swatch utilities ────────────────────────────────────────────────────
+const COLOR_VALUE_MAP: Record<string, string> = {
+  red: "#EF4444", blue: "#3B82F6", green: "#10B981", black: "#111111",
+  white: "#F9FAFB", yellow: "#F59E0B", purple: "#8B5CF6", pink: "#EC4899",
+  orange: "#F97316", gray: "#6B7280", grey: "#6B7280", brown: "#92400E",
+  navy: "#1E3A8A", teal: "#14B8A6", cyan: "#06B6D4", indigo: "#6366F1",
+  silver: "#C0C0C0", gold: "#D4AF37", beige: "#F5F5DC", cream: "#FFFDD0",
+  maroon: "#800000", olive: "#808000", lime: "#84CC16", violet: "#7C3AED",
+  rose: "#F43F5E", sky: "#0EA5E9", emerald: "#10B981", amber: "#F59E0B",
+  // Arabic
+  أحمر: "#EF4444", أزرق: "#3B82F6", أخضر: "#10B981", أسود: "#111111",
+  أبيض: "#F9FAFB", أصفر: "#F59E0B", بنفسجي: "#8B5CF6", وردي: "#EC4899",
+  برتقالي: "#F97316", رمادي: "#6B7280", بني: "#92400E", كحلي: "#1E3A8A",
+  فيروزي: "#14B8A6", ذهبي: "#D4AF37", فضي: "#C0C0C0",
+};
+
+function getColorSwatch(value: string): string | null {
+  const lower = value.toLowerCase().trim();
+  if (COLOR_VALUE_MAP[lower]) return COLOR_VALUE_MAP[lower];
+  for (const [key, hex] of Object.entries(COLOR_VALUE_MAP)) {
+    if (lower.startsWith(key) || lower.endsWith(key) || lower === key) return hex;
+  }
+  return null;
+}
+
+const COLOR_GROUP_NAMES = new Set(["color", "colour", "colors", "colours", "اللون", "لون", "الألوان"]);
+function isColorGroup(name: string): boolean {
+  return COLOR_GROUP_NAMES.has(name.toLowerCase().trim());
+}
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { FEATURES } from "@/lib/features";
@@ -598,34 +628,81 @@ export default function ProductDetail() {
                 {product.variantGroups.map((group) => {
                   const selectedOptionId = selectedOptions[group.id];
                   const selectedOption = group.options.find((o) => o.id === selectedOptionId);
+                  const colorGroup = isColorGroup(group.name);
                   return (
                     <div key={group.id}>
-                      <div className="text-sm font-medium mb-2">
+                      <div className="text-sm font-medium mb-2.5 flex items-center gap-1.5">
                         <span className="text-muted-foreground">{group.name}:</span>
-                        {selectedOption && (
-                          <span className="ms-2 font-semibold text-foreground">{selectedOption.value}</span>
+                        {selectedOption ? (
+                          <span className="font-semibold text-foreground">{selectedOption.value}</span>
+                        ) : (
+                          <span className="text-muted-foreground/60 text-xs italic">
+                            {t("product_detail.choose_option", "Choose one")}
+                          </span>
                         )}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {group.options.map((option) => {
-                          const isSelected = selectedOptions[group.id] === option.id;
+                          const isSelected = selectedOptionId === option.id;
                           const available = isOptionAvailable(group.id, option.id);
+                          const swatch = colorGroup ? getColorSwatch(option.value) : null;
+
+                          if (swatch) {
+                            const isWhite = swatch === "#F9FAFB";
+                            return (
+                              <button
+                                key={option.id}
+                                type="button"
+                                title={option.value}
+                                disabled={!available}
+                                onClick={() => setSelectedOptions((prev) => ({ ...prev, [group.id]: option.id }))}
+                                className={`relative w-9 h-9 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                                  isSelected
+                                    ? "ring-2 ring-primary ring-offset-2 scale-110 shadow-md"
+                                    : available
+                                      ? "hover:scale-110 hover:shadow-sm"
+                                      : "opacity-30 cursor-not-allowed"
+                                }`}
+                              >
+                                <span
+                                  className={`absolute inset-0.5 rounded-full ${isWhite ? "border border-border" : ""}`}
+                                  style={{ backgroundColor: swatch }}
+                                />
+                                {isSelected && (
+                                  <span className="absolute inset-0 flex items-center justify-center z-10">
+                                    <Check
+                                      className="h-3.5 w-3.5 drop-shadow-sm"
+                                      style={{ color: isWhite ? "#374151" : "white" }}
+                                    />
+                                  </span>
+                                )}
+                                {!available && (
+                                  <span className="absolute inset-0 flex items-center justify-center z-10">
+                                    <span className="absolute w-full h-px bg-muted-foreground/50 rotate-45" />
+                                  </span>
+                                )}
+                              </button>
+                            );
+                          }
+
                           return (
                             <button
                               key={option.id}
                               type="button"
+                              disabled={!available}
                               onClick={() => {
                                 if (!available) return;
                                 setSelectedOptions((prev) => ({ ...prev, [group.id]: option.id }));
                               }}
-                              className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                              className={`inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                                 isSelected
                                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
                                   : available
                                     ? "border-border hover:border-primary/60 hover:bg-primary/5 text-foreground"
-                                    : "border-border opacity-40 cursor-not-allowed text-muted-foreground line-through"
+                                    : "border-border opacity-35 cursor-not-allowed text-muted-foreground line-through"
                               }`}
                             >
+                              {isSelected && <Check className="h-3 w-3 shrink-0" />}
                               {option.value}
                             </button>
                           );

@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -25,6 +25,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useColors } from "@/hooks/useColors";
 import { t } from "../../src/i18n";
 
+// ── Color swatch utilities ────────────────────────────────────────────────────
+const COLOR_VALUE_MAP: Record<string, string> = {
+  red: "#EF4444", blue: "#3B82F6", green: "#10B981", black: "#111111",
+  white: "#F9FAFB", yellow: "#F59E0B", purple: "#8B5CF6", pink: "#EC4899",
+  orange: "#F97316", gray: "#6B7280", grey: "#6B7280", brown: "#92400E",
+  navy: "#1E3A8A", teal: "#14B8A6", cyan: "#06B6D4", indigo: "#6366F1",
+  silver: "#C0C0C0", gold: "#D4AF37", rose: "#F43F5E", emerald: "#10B981",
+  أحمر: "#EF4444", أزرق: "#3B82F6", أخضر: "#10B981", أسود: "#111111",
+  أبيض: "#F9FAFB", أصفر: "#F59E0B", بنفسجي: "#8B5CF6", وردي: "#EC4899",
+  برتقالي: "#F97316", رمادي: "#6B7280", بني: "#92400E", كحلي: "#1E3A8A",
+};
+
+function getColorSwatch(value: string): string | null {
+  const lower = value.toLowerCase().trim();
+  if (COLOR_VALUE_MAP[lower]) return COLOR_VALUE_MAP[lower];
+  for (const [key, hex] of Object.entries(COLOR_VALUE_MAP)) {
+    if (lower.startsWith(key) || lower === key) return hex;
+  }
+  return null;
+}
+
+const COLOR_GROUP_NAMES = new Set(["color", "colour", "colors", "اللون", "لون", "الألوان"]);
+function isColorGroup(name: string): boolean {
+  return COLOR_GROUP_NAMES.has(name.toLowerCase().trim());
+}
+
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const colors = useColors();
@@ -33,6 +59,9 @@ export default function ProductDetailScreen() {
   const [quantity, setQuantity] = useState(1);
   const [addedFeedback, setAddedFeedback] = useState(false);
   const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Variant selection state: groupId → optionId
+  const [selectedOptions, setSelectedOptions] = useState<Record<number, number>>({});
 
   useEffect(() => {
     return () => {
@@ -51,11 +80,99 @@ export default function ProductDetailScreen() {
     query: { enabled: !!product && sellerId > 0, queryKey: getStorePreviewQueryKey(sellerId) },
   });
 
+  // ── Variant derived state ─────────────────────────────────────────────────
+  const hasVariants = (product?.variantGroups?.length ?? 0) > 0;
+
+  const resolvedVariant = useMemo(() => {
+    if (!product || !hasVariants || !product.variants?.length) return null;
+    const numGroups = product.variantGroups!.length;
+    if (Object.keys(selectedOptions).length < numGroups) return null;
+    const selectedOptionIds = new Set(Object.values(selectedOptions));
+    return (
+      (product.variants as any[]).find(
+        (v: any) =>
+          v.options.length === numGroups &&
+          v.options.every((o: any) => selectedOptionIds.has(o.optionId))
+      ) ?? null
+    );
+  }, [selectedOptions, product, hasVariants]);
+
+  const needsVariantSelection =
+    hasVariants && Object.keys(selectedOptions).length < (product?.variantGroups?.length ?? 0);
+
+  function isOptionAvailable(groupId: number, optionId: number): boolean {
+    if (!product?.variants?.length) return true;
+    const test = { ...selectedOptions, [groupId]: optionId };
+    const testIds = new Set(Object.values(test));
+    return (product.variants as any[]).some(
+      (v: any) =>
+        v.active &&
+        v.stock > 0 &&
+        v.options.some((o: any) => o.optionId === optionId) &&
+        (Object.keys(test).length < (product.variantGroups?.length ?? 0) ||
+          (v.options.length === (product.variantGroups?.length ?? 0) &&
+            v.options.every((o: any) => testIds.has(o.optionId))))
+    );
+  }
+
+  // ── Effective price / stock / image (with variant resolution) ─────────────
+  const effectivePrice = (() => {
+    if (hasVariants && resolvedVariant) {
+      const v = resolvedVariant as any;
+      if (v.price != null) return parseFloat(v.price);
+      return product?.finalPrice ?? 0;
+    }
+    return product?.finalPrice ?? 0;
+  })();
+
+  const effectiveCompareAt = (() => {
+    if (hasVariants && resolvedVariant) {
+      const v = resolvedVariant as any;
+      if (v.compareAtPrice != null) return parseFloat(v.compareAtPrice);
+      if (v.price != null) return null;
+    }
+    if ((product?.discountPercent ?? 0) > 0) return product?.price ?? null;
+    return null;
+  })();
+
+  const effectiveStock = hasVariants
+    ? ((resolvedVariant as any)?.stock ?? 0)
+    : (product?.stock ?? 0);
+
+  const isOutOfStock = hasVariants
+    ? (!resolvedVariant || (resolvedVariant as any).stock === 0 || !(resolvedVariant as any).active)
+    : (product?.stock ?? 0) === 0;
+
+  const displayImageUrl = (() => {
+    if (hasVariants && resolvedVariant) {
+      const v = resolvedVariant as any;
+      if (v.images?.length) return typeof v.images[0] === "string" ? v.images[0] : v.images[0]?.url;
+      if (v.imageUrl) return v.imageUrl;
+    }
+    return product?.imageUrl ?? null;
+  })();
+
+  const hasDiscount =
+    effectiveCompareAt != null && effectiveCompareAt > effectivePrice;
+
+  function handleSelectOption(groupId: number, optionId: number) {
+    void Haptics.selectionAsync();
+    setSelectedOptions((prev) => ({ ...prev, [groupId]: optionId }));
+    setQuantity(1);
+  }
+
   function handleAddToCart() {
     if (!product) return;
+    if (needsVariantSelection || isOutOfStock) return;
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     addToCart.mutate(
-      { data: { productId: product.id, quantity } },
+      {
+        data: {
+          productId: product.id,
+          quantity,
+          ...(resolvedVariant ? { variantId: (resolvedVariant as any).id } : {}),
+        } as any,
+      },
       {
         onSuccess: () => {
           setAddedFeedback(true);
@@ -113,8 +230,8 @@ export default function ProductDetailScreen() {
     );
   }
 
-  const hasDiscount = product.discountPercent != null && product.discountPercent > 0;
-  const scrollBottomPad = isCustomer && product.stock > 0 ? footerHeight + bottomPad + 8 : bottomPad + 16;
+  const showFooter = isCustomer && !isOutOfStock && !needsVariantSelection;
+  const scrollBottomPad = showFooter ? footerHeight + bottomPad + 8 : bottomPad + 16;
 
   const trustColor =
     storePreview?.trustLevel === "trusted"
@@ -151,10 +268,11 @@ export default function ProductDetailScreen() {
         contentContainerStyle={{ paddingBottom: scrollBottomPad }}
         showsVerticalScrollIndicator={false}
       >
+        {/* Hero image — switches with variant selection */}
         <View style={[styles.heroImage, { backgroundColor: colors.muted }]}>
-          {product.imageUrl ? (
+          {displayImageUrl ? (
             <Image
-              source={{ uri: product.imageUrl }}
+              source={{ uri: displayImageUrl }}
               style={StyleSheet.absoluteFill}
               resizeMode="cover"
             />
@@ -164,36 +282,183 @@ export default function ProductDetailScreen() {
           {hasDiscount && (
             <View style={[styles.discountBadge, { backgroundColor: colors.primary }]}>
               <Text style={[styles.discountText, { color: colors.primaryForeground }]}>
-                -{product.discountPercent}%
+                -{product.discountPercent ?? Math.round((1 - effectivePrice / (effectiveCompareAt ?? effectivePrice)) * 100)}%
               </Text>
             </View>
           )}
         </View>
 
         <View style={styles.details}>
+          {/* Category + stock row */}
           <View style={styles.metaRow}>
             <Text style={[styles.category, { color: colors.primary }]}>
               {product.category}
             </Text>
-            <View style={[styles.stockBadge, { backgroundColor: product.stock > 0 ? colors.accent : "#FEE2E2" }]}>
-              <Text style={[styles.stockText, { color: product.stock > 0 ? colors.accentForeground : "#EF4444" }]}>
-                {product.stock > 0 ? t("product.in_stock", { count: String(product.stock) }) : t("product.out_of_stock")}
-              </Text>
-            </View>
+            {!needsVariantSelection && (
+              <View
+                style={[
+                  styles.stockBadge,
+                  { backgroundColor: isOutOfStock ? "#FEE2E2" : colors.accent },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.stockText,
+                    { color: isOutOfStock ? "#EF4444" : colors.accentForeground },
+                  ]}
+                >
+                  {isOutOfStock
+                    ? t("product.out_of_stock")
+                    : t("product.in_stock", { count: String(effectiveStock) })}
+                </Text>
+              </View>
+            )}
           </View>
 
           <Text style={[styles.name, { color: colors.foreground }]}>{product.name}</Text>
 
+          {/* Price row — shows variant price when resolved */}
           <View style={styles.priceRow}>
             <Text style={[styles.price, { color: colors.foreground }]}>
-              ${product.finalPrice.toFixed(2)}
+              ${effectivePrice.toFixed(2)}
             </Text>
-            {hasDiscount && (
+            {hasDiscount && effectiveCompareAt != null && (
               <Text style={[styles.originalPrice, { color: colors.mutedForeground }]}>
-                ${product.price.toFixed(2)}
+                ${effectiveCompareAt.toFixed(2)}
               </Text>
             )}
           </View>
+
+          {/* ── Variant Selector ─────────────────────────────────── */}
+          {hasVariants && (product.variantGroups ?? []).length > 0 && (
+            <View style={styles.variantSection}>
+              {(product.variantGroups as any[]).map((group: any) => {
+                const selectedOptionId = selectedOptions[group.id];
+                const selectedOpt = group.options.find((o: any) => o.id === selectedOptionId);
+                const colorGroup = isColorGroup(group.name);
+                return (
+                  <View key={group.id} style={styles.variantGroup}>
+                    {/* Group label */}
+                    <View style={styles.variantLabelRow}>
+                      <Text style={[styles.variantGroupLabel, { color: colors.mutedForeground }]}>
+                        {group.name}:
+                      </Text>
+                      {selectedOpt ? (
+                        <Text style={[styles.variantGroupValue, { color: colors.foreground }]}>
+                          {selectedOpt.value}
+                        </Text>
+                      ) : (
+                        <Text style={[styles.variantGroupHint, { color: colors.mutedForeground }]}>
+                          {t("product.choose_option", { group: group.name })}
+                        </Text>
+                      )}
+                    </View>
+
+                    {/* Option chips */}
+                    <View style={styles.optionRow}>
+                      {group.options.map((option: any) => {
+                        const isSelected = selectedOptionId === option.id;
+                        const available = isOptionAvailable(group.id, option.id);
+                        const swatch = colorGroup ? getColorSwatch(option.value) : null;
+
+                        if (swatch) {
+                          const isWhite = swatch === "#F9FAFB";
+                          return (
+                            <Pressable
+                              key={option.id}
+                              onPress={() => available && handleSelectOption(group.id, option.id)}
+                              style={({ pressed }) => [
+                                styles.colorSwatch,
+                                {
+                                  borderColor: isSelected ? colors.primary : "transparent",
+                                  opacity: available ? (pressed ? 0.75 : 1) : 0.3,
+                                  transform: [{ scale: isSelected ? 1.12 : 1 }],
+                                },
+                              ]}
+                            >
+                              <View
+                                style={[
+                                  styles.colorSwatchInner,
+                                  {
+                                    backgroundColor: swatch,
+                                    borderWidth: isWhite ? 1 : 0,
+                                    borderColor: colors.border,
+                                  },
+                                ]}
+                              />
+                              {isSelected && (
+                                <View style={styles.swatchCheck}>
+                                  <Ionicons
+                                    name="checkmark"
+                                    size={12}
+                                    color={isWhite ? "#374151" : "white"}
+                                  />
+                                </View>
+                              )}
+                              {!available && (
+                                <View style={[StyleSheet.absoluteFill, styles.swatchUnavailable]}>
+                                  <View
+                                    style={[styles.swatchDiagonal, { backgroundColor: colors.mutedForeground }]}
+                                  />
+                                </View>
+                              )}
+                            </Pressable>
+                          );
+                        }
+
+                        return (
+                          <Pressable
+                            key={option.id}
+                            onPress={() => available && handleSelectOption(group.id, option.id)}
+                            style={({ pressed }) => [
+                              styles.optionChip,
+                              {
+                                backgroundColor: isSelected ? colors.primary : colors.card,
+                                borderColor: isSelected ? colors.primary : colors.border,
+                                opacity: available ? (pressed ? 0.75 : 1) : 0.35,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.optionChipText,
+                                {
+                                  color: isSelected ? colors.primaryForeground : colors.foreground,
+                                  textDecorationLine: available ? "none" : "line-through",
+                                },
+                              ]}
+                            >
+                              {option.value}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                );
+              })}
+
+              {/* "Select all options" nudge */}
+              {needsVariantSelection && (
+                <View style={[styles.selectNudge, { backgroundColor: colors.accent }]}>
+                  <Ionicons name="information-circle-outline" size={15} color={colors.primary} />
+                  <Text style={[styles.selectNudgeText, { color: colors.primary }]}>
+                    {t("product.select_options")}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+
+          {/* Out of stock banner (only when variant is fully selected) */}
+          {isOutOfStock && !needsVariantSelection && (
+            <View style={[styles.outOfStockBanner, { backgroundColor: "#FEE2E2" }]}>
+              <Ionicons name="close-circle-outline" size={16} color="#EF4444" />
+              <Text style={[styles.outOfStockText, { color: "#EF4444" }]}>
+                {t("product.out_of_stock")}
+              </Text>
+            </View>
+          )}
 
           <Text style={[styles.descriptionLabel, { color: colors.foreground }]}>
             {t("product.about")}
@@ -265,7 +530,7 @@ export default function ProductDetailScreen() {
                     styles.storeBtn,
                     { backgroundColor: colors.accent, opacity: pressed ? 0.8 : 1 },
                   ]}
-                  onPress={() => router.push(`/(tabs)` as any)}
+                  onPress={() => router.push("/(tabs)" as any)}
                 >
                   <Ionicons name="storefront-outline" size={16} color={colors.primary} />
                   <Text style={[styles.storeBtnText, { color: colors.primary }]}>View Store</Text>
@@ -276,7 +541,8 @@ export default function ProductDetailScreen() {
         </View>
       </ScrollView>
 
-      {isCustomer && product.stock > 0 && (
+      {/* Footer: Add to Cart — only when customer, variant resolved (or no variants), and in stock */}
+      {showFooter && (
         <View
           onLayout={handleFooterLayout}
           style={[
@@ -298,7 +564,7 @@ export default function ProductDetailScreen() {
             <Text style={[styles.qtyText, { color: colors.foreground }]}>{quantity}</Text>
             <Pressable
               style={[styles.qtyBtn, { borderColor: colors.border }]}
-              onPress={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+              onPress={() => setQuantity((q) => Math.min(effectiveStock, q + 1))}
             >
               <Ionicons name="add" size={18} color={colors.foreground} />
             </Pressable>
@@ -326,11 +592,34 @@ export default function ProductDetailScreen() {
                   color={colors.primaryForeground}
                 />
                 <Text style={[styles.addToCartText, { color: colors.primaryForeground }]}>
-                  {addedFeedback ? t("product.added") : t("product.add_to_cart", { price: (product.finalPrice * quantity).toFixed(2) })}
+                  {addedFeedback
+                    ? t("product.added")
+                    : t("product.add_to_cart", { price: (effectivePrice * quantity).toFixed(2) })}
                 </Text>
               </>
             )}
           </Pressable>
+        </View>
+      )}
+
+      {/* Select options nudge footer (sticky) — when customer but needs selection */}
+      {isCustomer && needsVariantSelection && (
+        <View
+          style={[
+            styles.footer,
+            {
+              backgroundColor: colors.card,
+              borderTopColor: colors.border,
+              paddingBottom: bottomPad + 8,
+            },
+          ]}
+        >
+          <View style={[styles.selectNudgeFooter, { backgroundColor: colors.accent, flex: 1 }]}>
+            <Ionicons name="options-outline" size={18} color={colors.primary} />
+            <Text style={[styles.selectNudgeFooterText, { color: colors.primary }]}>
+              {t("product.select_options")}
+            </Text>
+          </View>
         </View>
       )}
     </View>
@@ -377,6 +666,85 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: "row", alignItems: "baseline", gap: 8, marginTop: 4 },
   price: { fontSize: 28, fontWeight: "700" as const },
   originalPrice: { fontSize: 16, textDecorationLine: "line-through" },
+
+  // Variant selector
+  variantSection: { marginTop: 8, gap: 16 },
+  variantGroup: { gap: 10 },
+  variantLabelRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  variantGroupLabel: { fontSize: 13, fontWeight: "600" as const },
+  variantGroupValue: { fontSize: 13, fontWeight: "700" as const },
+  variantGroupHint: { fontSize: 12, fontStyle: "italic" },
+  optionRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  optionChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    borderWidth: 1.5,
+  },
+  optionChipText: { fontSize: 13, fontWeight: "600" as const },
+
+  // Color swatches
+  colorSwatch: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 2.5,
+    alignItems: "center",
+    justifyContent: "center",
+    overflow: "visible",
+  },
+  colorSwatchInner: {
+    position: "absolute",
+    inset: 2,
+    top: 2,
+    left: 2,
+    right: 2,
+    bottom: 2,
+    borderRadius: 14,
+  },
+  swatchCheck: {
+    position: "absolute",
+    inset: 0,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 2,
+  },
+  swatchUnavailable: {
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 3,
+    backgroundColor: "transparent",
+  },
+  swatchDiagonal: {
+    width: "100%",
+    height: 1.5,
+    transform: [{ rotate: "45deg" }],
+    opacity: 0.6,
+  },
+
+  // Select options nudge
+  selectNudge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  selectNudgeText: { fontSize: 13, fontWeight: "500" as const, flex: 1 },
+
+  // Out of stock
+  outOfStockBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 4,
+  },
+  outOfStockText: { fontSize: 14, fontWeight: "600" as const },
+
   descriptionLabel: { fontSize: 15, fontWeight: "700" as const, marginTop: 8 },
   description: { fontSize: 14, lineHeight: 22 },
   sellerCard: {
@@ -458,4 +826,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   addToCartText: { fontSize: 15, fontWeight: "700" as const },
+  selectNudgeFooter: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    height: 50,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+  },
+  selectNudgeFooterText: { fontSize: 14, fontWeight: "600" as const },
 });
