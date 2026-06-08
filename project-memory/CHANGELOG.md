@@ -4,6 +4,46 @@ Chronological log of all verified modifications. Never delete previous entries.
 
 ---
 
+## 2026-06-08 02:55 UTC — Permanent Root Admin Bootstrap
+
+**Added:**
+- `artifacts/api-server/src/lib/bootstrap-admin.ts` — self-healing root admin function
+- `bootstrapRootAdmin()` called in `artifacts/api-server/src/index.ts` after migrations, before listen
+
+**Fixed:**
+- Root admin account now recreates and self-repairs on every server startup
+
+**Changed:**
+- `project-memory/AUTH_STATE.md` — permanent root admin rules documented
+- `project-memory/RECOVERY_GUIDE.md` — Step 4 now describes automatic self-healing (no manual SQL)
+
+**Database impact:**
+- Root admin account (delewaitamer7@gmail.com) created automatically if missing
+
+**API impact:**
+- None — bootstrap runs before HTTP server starts, adds no routes
+
+**Frontend impact:**
+- None
+
+**Mobile impact:**
+- None
+
+**Performance impact:**
+- One bcrypt.compare (+ optional hash) at startup — negligible
+
+**Breaking changes:**
+- None
+
+**Verification status:**
+- ✅ Bootstrap log: `Root admin bootstrapped (created)` on first run
+- ✅ DB: id=3, role=admin, account_status=active, is_verified=true, hash_length=60
+- ✅ Login: `POST /api/auth/login` with root credentials → JWT 232 chars
+- ✅ Wrong password: returns `INVALID_PASSWORD` (correct)
+- ✅ Idempotent: safe to re-run on every startup
+
+---
+
 ## 2026-06-08 02:30 UTC — Workspace Migration Recovery
 
 **Added:**

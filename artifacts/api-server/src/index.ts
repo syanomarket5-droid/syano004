@@ -2,6 +2,7 @@ import app from "./app";
 import { logger } from "./lib/logger";
 import { runSearchStartup } from "./lib/search-startup";
 import { runMigrations } from "./lib/run-migrations";
+import { bootstrapRootAdmin } from "./lib/bootstrap-admin";
 
 const rawPort = process.env["PORT"];
 
@@ -20,6 +21,7 @@ if (Number.isNaN(port) || port <= 0) {
 (async () => {
   await runMigrations();
   await runSearchStartup();
+  await bootstrapRootAdmin();
 
   app.listen(port, (err) => {
     if (err) {

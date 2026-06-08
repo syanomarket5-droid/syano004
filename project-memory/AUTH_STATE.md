@@ -87,11 +87,41 @@ All verified present 2026-06-08:
 - `reset_otp_locked_until` — timestamptz
 - `otp_hash`, `otp_expires_at`, `otp_attempts`, `otp_locked_until` — for registration OTP (currently disabled)
 
-## Admin Account Requirements
-After fresh database:
-1. Register with `delewatiamer7@gmail.com`
-2. Promote via SQL: `UPDATE users SET role='admin', is_verified=true, account_status='active' WHERE email='delewatiamer7@gmail.com'`
-3. Reset password via forgot-password flow
+## Permanent Root Administrator
+
+**Email:** `delewaitamer7@gmail.com`
+**Name:** Root Administrator
+
+### Rules (enforced automatically on every startup)
+- Must always exist
+- Must always have `role = admin`
+- Must always have `account_status = active`
+- Must always have `is_verified = true`
+- Password hash must always match the configured root password
+
+### Implementation
+- File: `artifacts/api-server/src/lib/bootstrap-admin.ts`
+- Called from: `artifacts/api-server/src/index.ts` (after migrations, before listen)
+- Function: `bootstrapRootAdmin()` — idempotent, safe to re-run every startup
+
+### Password Configuration
+- Environment variable: `ROOT_ADMIN_PASSWORD` (Replit Secret)
+- If variable is absent, a safe default is used (see bootstrap-admin.ts)
+- **Never store the actual password in any project-memory file**
+- To rotate: update `ROOT_ADMIN_PASSWORD` secret in Replit → restart API server
+
+### What bootstrapRootAdmin() Does
+1. Query users table for root admin email
+2. If missing → INSERT with correct role/status/hash
+3. If present:
+   - role ≠ admin → UPDATE to admin
+   - accountStatus ≠ active → UPDATE to active
+   - isVerified = false → UPDATE to true
+   - password hash doesn't match configured password → regenerate hash
+4. Logs result: "bootstrapped (created)" | "repaired" (with repair list) | "healthy"
+
+### No Manual Recovery Required
+After any database reset or migration, simply starting the API server automatically restores the root admin account. No manual SQL or curl commands needed.
 
 ## Frontend Error Code Mapping
 | HTTP | Body | Frontend action |

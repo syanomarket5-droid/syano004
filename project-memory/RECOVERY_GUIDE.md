@@ -50,14 +50,21 @@ cd lib/db && echo "" | DATABASE_URL="$DATABASE_URL" pnpm drizzle-kit push --conf
 ```
 Then restart API server (it applies additive migrations automatically).
 
-### Step 4 — Verify admin account
-```sql
-SELECT id, email, role, account_status, is_verified FROM users WHERE email = 'delewatiamer7@gmail.com';
-```
+### Step 4 — Root admin is self-healing (automatic)
+The `bootstrapRootAdmin()` function runs automatically during API server startup (after migrations).
 
-If missing:
-1. Register via `POST /api/auth/register`
-2. Promote: `UPDATE users SET role='admin', is_verified=true, account_status='active' WHERE email='delewatiamer7@gmail.com'`
+**No manual action required.** It will:
+- Create the root admin if missing
+- Repair role / account_status / is_verified if wrong
+- Regenerate password hash if it doesn't match `ROOT_ADMIN_PASSWORD` env var
+
+To verify it ran correctly, check API server logs for one of:
+- `Root admin bootstrapped (created)`
+- `Root admin repaired` (with repairs list)
+- `Root admin healthy`
+
+Root admin email: `delewaitamer7@gmail.com`
+Password: set via `ROOT_ADMIN_PASSWORD` Replit Secret (falls back to configured default if absent)
 
 ### Step 5 — Build lib declarations
 ```bash
